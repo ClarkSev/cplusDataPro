@@ -132,11 +132,11 @@ template<typename nodeDataType, typename infoType>
 usrGraph<nodeDataType, infoType>::~usrGraph()
 {
 	//HeadNode<nodeDataType, infoType> *l_ptrHead = nullptr;
-	////析构Vector里的链表数据
-	//while (m_vecHead.size())
-	//{
-
-	//}
+	//析构Vector里的链表数据
+	while(m_vecHead.size())
+	{
+		deleteGraphNode(m_vecHead[0]->nodeDat);
+	}
 }
 template<typename nodeDataType, typename infoType>void usrGraph<nodeDataType, infoType>::
 listInvertTable(vector< vector<int> >&t_table,bool graphMode)const   //将邻接表转换为邻接矩阵
@@ -267,10 +267,25 @@ template<typename nodeDataType, typename infoType>void usrGraph<nodeDataType, in
 deleteGraphNode(const nodeDataType t_graphNode)
 {
 	int index = LocalElem(t_graphNode) - 1;
+	int listLength = 0;
 	//获取链表数据，并释放空间
 	HeadNode<nodeDataType, infoType> *lheadPtr = m_vecHead[index];
+	Node<infoType> *curPtr = lheadPtr->ptrNext;
+	//获取更改的边数目
+	while (curPtr)
+	{
+		curPtr = curPtr->ptrNext;
+		++listLength;
+	}
 	//将数据从vecHead中删除
 	m_vecHead.erase(m_vecHead.begin()+index);
+	//更新结点数据与边信息
+	m_numNode -= 1;
+	if (m_numNode < 0)
+		m_numNode = 0;
+	m_numEdge -= listLength;
+	if (m_numEdge < 0)
+		m_numEdge = 0;
 	//释放链表空间
 	usrList<nodeDataType, infoType> l_tmpList;
 	l_tmpList.clrLinerList(&lheadPtr);
@@ -478,7 +493,10 @@ minRoadLenDijksra(const nodeDataType &t_startElem)
 template<typename nodeDataType, typename infoType>bool usrGraph<nodeDataType, infoType>::
 topSort_AOV()
 {
-
+	//1.找出任意的没有前继指针的结点，并访问
+	//2.删除该结点，与相应的边之后，再次进行 1 操作
+	//直到所有结点都有前继指针或是所有结点都访问完成
+	//为了更加简单操作，可以在结点中，加入 结点的入度信息，以供判断是否存在前继指针
 }
 
 #if EN_NMSPACE_USR_DATASTRUCTURE
