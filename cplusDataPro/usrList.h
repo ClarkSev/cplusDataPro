@@ -52,7 +52,8 @@ private:
 	int length;
 	HeadNode<headType,nodeType>  *headNode;  //表头结点
 	Node<nodeType>               *lastNode;  //表尾指针
-	Node<nodeType>               *delListNode(Node<nodeType>** tptr);
+	//tbUpdLen---表示删除节点是否更新 length 属性 
+	Node<nodeType>               *delListNode(Node<nodeType>** tptr,bool tbUpdLen=true);
 public:
 	/** 公有方法------------------------------------------------------------*/
 	usrList();   //默认构造函数
@@ -65,7 +66,7 @@ public:
 	}
 	/** 线性表操作 ----------------------------------------*/
 	void clrLinerList();  //清空链表数据，并释放结点指针
-
+	void clrLinerList(HeadNode<headType, nodeType>** theadNode);  //多态
 	//深层复制链表
 	usrList<headType, nodeType> &copy(const usrList<headType,nodeType> &tslinerlist);
 	//在当前结点之后插入结点或是表尾插入
@@ -116,10 +117,10 @@ namespace nmspace_usr_datastructure
 
 //删除当前结点的下一个，并返回删除后的当前结点指针
 template<typename headType, typename nodeType = headType>
-Node<nodeType>* usrList<headType,nodeType>::delListNode(Node<nodeType>** tptr)
+Node<nodeType>* usrList<headType,nodeType>::delListNode(Node<nodeType>** tptr,bool bUpdLen)
 {
-	if (isEmpty())
-		return nullptr;
+	//if (isEmpty())
+	//	return nullptr;
 	if (tptr == nullptr){
 		return nullptr;
 	}
@@ -137,7 +138,8 @@ Node<nodeType>* usrList<headType,nodeType>::delListNode(Node<nodeType>** tptr)
 	//lastNode = *tptr; //向前移动表尾指针
 	delete l_ptrNode; //释放空间
 	l_ptrNode = nullptr;
-	length -= 1;
+	if(bUpdLen)
+		length -= 1;
 	if (!(*tptr))
 		return nullptr;
 	return (*tptr)->ptrNext; //返回下一个结点指针
@@ -173,7 +175,8 @@ clrLinerList() //清空链表数据，并释放结点指针
 {
 	if (isEmpty())  //如果为空，退去
 		return;
-	Node<nodeType>* l_curNode = headNode->ptrNext;  //从第一个有效结点开始，第一个结点为表头结点之后的结点
+	//从第一个有效结点开始，第一个结点为表头结点之后的结点
+	Node<nodeType>* l_curNode = headNode->ptrNext;  
 	while (!isEmpty())
 	{
 		delListNode(&l_curNode);  //释放结点
@@ -183,16 +186,21 @@ clrLinerList() //清空链表数据，并释放结点指针
 	lastNode = nullptr;
 }
 template<typename headType, typename nodeType = headType>
-void clrLinerList(HeadNode<headType, nodeType>*t_headNode)
+void clrLinerList(HeadNode<headType, nodeType> **theadNode)
 {
-	Node<nodeType> *l_ptrNode = t_headNode->ptrNext;
-	while (l_ptrNode)
+	if (!theadNode)
+		return;
+	Node<nodeType> *lptrNode = (*theadNode)->ptrNext;
+	while (lptrNode)
 	{
-		
+		delListNode(&lptrNode,false);
+		lptrNode = lptrNode->ptrNext;
 	}
+	delete (*theadNode); *theadNode = nullptr;
 }
 //深层复制链表
-template<typename headType, typename nodeType = headType>usrList<headType, nodeType>&usrList<headType,nodeType>::copy(const usrList &tslinerlist)
+template<typename headType, typename nodeType = headType>usrList<headType, nodeType>&\
+usrList<headType,nodeType>::copy(const usrList &tslinerlist)
 {
 	if (!this->isEmpty())  //不为空表，则清空链表
 		this->clrLinerList();
