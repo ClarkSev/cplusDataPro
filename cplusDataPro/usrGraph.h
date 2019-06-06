@@ -31,13 +31,16 @@
 #endif  //EN_USR_GRAPH_CLASS
 
 #if EN_USR_GRAPH_CLASS
-	#define macroGpStkTmp     usrStackUnique  //Ã»ÓĞÖØ¸´Êı¾İ
+	#define macroGpStkTmp     usrStackUnique  //Ã»ÓĞÖØ¸´Êı¾İµÄ¶ÑÕ»
 	#define macroGpDeqTmp     usrQueue
 #else
 	#define macroGpStkTmp     stack
 	#define macroGpDeqTmp     deque
 #endif //EN_USR_GRAPH_CLASS
 
+
+#define EN_MULIT_INFOTYPE               (0)       //ÉèÖÃÁÚ½Ó±í½áµãÊı¾İµÄÀàĞÍ
+												  //0£º±íÊ¾³£¹æµÄ»ù±¾ÀàĞÍ 1£º±íÊ¾½á¹¹Ìå»òÊÇÀàÀàĞÍµÄ½áµãÊı¾İ
 #define GRAPH_MAX_WEIGHT_LINE           (65535)   //×î´óÈ¨ÖØÖµ
 
 /** Àà¶¨Òå------------------------------------------------------------------------*/
@@ -67,14 +70,23 @@ protected:
 				return true;
 		}
 		else
+		{
+#if EN_MULIT_INFOTYPE
+			cout << "½áµãÊı¾İ£º" << tptr_Node->nodeDat.Index << endl;
+#else //Êä³ö»ù±¾ÀàĞÍÊı¾İ
 			cout << "½áµãÊı¾İ£º" << tptr_Node->nodeDat << endl;
+#endif
+		}
 		return false;
 	}
 	int m_getInfoIndex(const Node<infoType>* tptr_Node)
 	{
 		//Èç¹ûinfoTypeÊÇ½á¹¹Ìå»òÊÇÀà ÀàĞÍ£¬ĞèÒª¸ü¸Ä´Ë´¦³ÌĞò
-		//tptr_Node->nodeDat;
-		return  tptr_Node->nodeDat;// tptr_Node->nodeDat.Index;  
+#if EN_MULIT_INFOTYPE
+		return  tptr_Node->nodeDat.Index;// tptr_Node->nodeDat.Index;  
+#else
+		return tptr_Node->nodeDat;
+#endif //EN_MULIT_INFOTYPE
 	}
 	//½«ÁÚ½Ó±í×ª»»ÎªÁÚ½Ó¾ØÕó£¬Ë÷ÒıÖµ´Ó0¿ªÊ¼
 	//graphMode--±íÊ¾Í¼µÄÄ£Ê½£¬Ä¬ÈÏÎªÎŞÏòÍ¼  true±íÊ¾ÓĞÏòÍ¼
@@ -86,6 +98,8 @@ public:
 	template<typename ...pack_infoType>
 	void createGraph(const nodeDataType t_graphNode, pack_infoType...t_line);
 	void createGraph(const nodeDataType t_graphNode);  //¶àÌ¬---½áµãµÄ±ßÎª¿ÕÊ±µÄÍ¼½áµã¹¹½¨
+	//É¾³ıÍ¼ÖĞµÄ½áµãÒÔ¼°ÏàÓ¦ÒÔ¸Ã½áµãÎªÎ²µÄ»¡
+	void deleteGraphNode(const nodeDataType t_graphNode);
 
 	//ÉèÖÃ±ßµÄÈ¨Öµ
 	bool m_setLineWeight(HeadNode<nodeDataType, infoType>* tHeadPtr, int tLineIndex, int tLineWeight);
@@ -105,6 +119,7 @@ public:
 	
 	void minCostPrim();//×îĞ¡´ú¼ÛÉú³ÉÊ÷----Õë¶ÔÎŞÏòÍ¼
 	void minRoadLenDijksra(const nodeDataType &t_startElem);   //×î¶ÌÂ·¾¶Ëã·¨---Õë¶ÔÓĞÏòÍ¼
+	bool topSort_AOV();  //Õë¶ÔAOVÍøÂç£¬Ê¹ÓÃÍØÆËÅÅĞòËã·¨¼ì²âÍøÂçÖĞÊÇ·ñ´æÔÚ»·Â·
 };
 
 //---------------------------------Í¼µÄ·½·¨ÊµÏÖ------------------------------------//
@@ -131,8 +146,12 @@ listInvertTable(vector< vector<int> >&t_table,bool graphMode)const   //½«ÁÚ½Ó±í×
 	for (auto &vecElem:t_table)
 	{
 		//vecElem.resize(m_numNode);
+#if EN_MULIT_INFOTYPE
 		//½«ËùÓĞ±ßÔ¤ÉèÎª×î´óÈ¨ÖØ
 		vecElem.assign(m_numNode, GRAPH_MAX_WEIGHT_LINE);  //ÉèÖÃÊı×éµÄ´óĞ¡Óë³õÖµ
+#else //»ù±¾ÀàĞÍ
+		vecElem.assign(m_numNode, 0);  //ÉèÖÃÊı×éµÄ´óĞ¡Óë³õÖµ
+#endif //EN_MULIT_INFOTYPE
 	}
 	int curIndex = 0;
 	Node<infoType>* curPtr = nullptr;
@@ -142,7 +161,11 @@ listInvertTable(vector< vector<int> >&t_table,bool graphMode)const   //½«ÁÚ½Ó±í×
 		while (curPtr)
 		{
 			//¶Ô³Æ¾ØÕó
-			t_table[curIndex][(curPtr->nodeDat.Index)-1] = curPtr->nodeDat.Weight;//t_table[curIndex][Index] = Weight;
+#if EN_MULIT_INFOTYPE
+			t_table[curIndex][(curPtr->nodeDat.Index)-1] = curPtr->nodeDat.Weight;
+#else //»ù±¾ÀàĞÍ
+			t_table[curIndex][(curPtr->nodeDat) - 1] = 1;  //1£º±íÊ¾ÁÚ½Ó
+#endif //EN_MULIT_INFOTYPE
 			if (!graphMode)  //ÈôÊÇÓĞÏòÍ¼ graphMode=true ´ËÊ±ÁÚ½Ó¾ØÕó¾Í²»Ò»¶¨²»ÊÇ¶Ô³Æ¾ØÕó
 				t_table[(curPtr->nodeDat.Index) - 1][curIndex] = t_table[curIndex][(curPtr->nodeDat.Index) - 1];
 			curPtr = curPtr->ptrNext;
@@ -168,6 +191,7 @@ m_findMinLine(HeadNode<nodeDataType, infoType>* tHeadPtr)
 {
 	int minWeight = GRAPH_MAX_WEIGHT_LINE;
 	int minIndex = 0;
+#if  EN_MULIT_INFOTYPE
 	Node<infoType>* lPtr = tHeadPtr->ptrNext;
 	while (lPtr)
 	{
@@ -178,12 +202,14 @@ m_findMinLine(HeadNode<nodeDataType, infoType>* tHeadPtr)
 		}
 		lPtr = lPtr->ptrNext;
 	}
+#endif //EN_MULIT_INFOTYPE
 	return minIndex;
 }
 //ÉèÖÃ±ßµÄÈ¨ÖØ
 template<typename nodeDataType, typename infoType>bool usrGraph<nodeDataType, infoType>::
 m_setLineWeight(HeadNode<nodeDataType, infoType>* tHeadPtr, int tLineIndex, int tLineWeight)
 {
+#if EN_MULIT_INFOTYPE
 	Node<infoType>* lPtr = tHeadPtr->ptrNext;
 	while (lPtr)
 	{
@@ -193,6 +219,7 @@ m_setLineWeight(HeadNode<nodeDataType, infoType>* tHeadPtr, int tLineIndex, int 
 		}
 		lPtr = lPtr->ptrNext;
 	}
+#endif //EN_MULIT_INFOTYPE
 	return false;
 }
 
@@ -234,6 +261,20 @@ createGraph(const nodeDataType t_graphNode)
 	l_headVec->setHeadVal(t_graphNode);  //ÉèÖÃ±íÍ·½áµãÊı¾İ
 	m_vecHead.push_back(l_headVec->getHeadNode());
 	m_numNode += 1;
+}
+//É¾³ıÍ¼ÖĞµÄ½áµãÒÔ¼°ÏàÓ¦ÒÔ¸Ã½áµãÎªÎ²µÄ»¡
+template<typename nodeDataType, typename infoType>void usrGraph<nodeDataType, infoType>::
+deleteGraphNode(const nodeDataType t_graphNode)
+{
+	int index = LocalElem(t_graphNode) - 1;
+	//»ñÈ¡Á´±íÊı¾İ£¬²¢ÊÍ·Å¿Õ¼ä
+	HeadNode<nodeDataType, infoType> *lheadPtr = m_vecHead[index];
+	//½«Êı¾İ´ÓvecHeadÖĞÉ¾³ı
+	m_vecHead.erase(m_vecHead.begin()+index);
+	//ÊÍ·ÅÁ´±í¿Õ¼ä
+	usrList<nodeDataType, infoType> l_tmpList;
+	l_tmpList.clrLinerList(&lheadPtr);
+	//ĞèÒªÌí¼ÓÒ»¸öÕ¼Î»Êı¾İ£¬ÒÔ·ÀÖ¹ºóÃæµÄ±éÀú»òÊÇ¼ÆËã³öÏÖË÷ÒıÖµ²»Æ¥Åä
 }
 
 //Éî¶ÈÓÅÏÈÊı¾İ±éÀú
@@ -328,40 +369,10 @@ breadthFirstSearch(const nodeDataType &t_startElem, const nodeDataType &t_search
 	return false;
 }
 //×îĞ¡´ú¼ÛÉú³ÉÊ÷PrimËã·¨ÊµÏÖ---Õë¶ÔÎŞÏòÍ¼£¬Ê¹ÓÃÁÚ½Ó¾ØÕóÊµÏÖ
+//Ö»ÓĞÀà»òÊÇ½á¹¹ÌåÀàĞÍµÄĞÅÏ¢½áµãÀàĞÍµÄ±ß£¬È¨ÖØ»òÊÇ´ú¼Û²ÅÓĞº¬Òå
 template<typename nodeDataType, typename infoType>void usrGraph<nodeDataType, infoType>::
 minCostPrim()
-{
-#if 0
-	//vector<bool>vecLineState(m_numNode,false);  //ÓÃÓÚ±êÖ¾±ßÊÇ·ñÒÑ¾­´æÔÚ
-	HeadNode<nodeDataType, infoType>*curHeadPtr = nullptr;
-	int curIndex = 0, minLineIndex = 0;
-	//ÉùÃ÷×îĞ¡È¨ÖØµÄ±ß
-	int minWeightLine = GRAPH_MAX_WEIGHT_LINE;
-	vector<vector<int>>vecIndexCache(m_numNode);  //ÓÃÓÚ´æ´¢×îĞ¡±ßÁ½±ßµÄ½áµãË÷ÒıÖµ
-	for (int loop = 0; loop < m_numNode; loop++)
-	{
-		for (curIndex = 0; curIndex < m_numNode; curIndex++)   //¸ÃÑ­»·Ê¹ÓÃ¿í¶ÈÓÅÏÈ±éÀú£¬²éÕÒ×îĞ¡È¨ÖØµÄ±ß
-		{
-			curHeadPtr = m_vecHead[curIndex];
-			//Ê¹ÓÃ¿í¶ÈÓÅÏÈ±éÀúµÚÒ»²ã£¬Ò²¾ÍÊÇ±éÀúÔÚÁÚ½Ó±íÖĞµÄÒ»¸öÁ´±í£¬²¢·µ»Ø×îĞ¡±ßµÄÍ·½áµãË÷ÒıÖµ
-			minLineIndex = m_findMinLine(curHeadPtr);
-			//°Ñ×îĞ¡±ßÁ½²àµÄË÷ÒıÖµ¶ÔÓ¦ÔÚÒ»Æğ
-			vecIndexCache[curIndex].push_back(minLineIndex);
-			//½«Ö®Ç°ÕÒµ½µÄ×îĞ¡±ßÉèÖÃÎªÈ¨ÖØÎŞÇî´ó
-			m_setLineWeight(curHeadPtr, minLineIndex, GRAPH_MAX_WEIGHT_LINE);
-		}
-	}
-	//¹¹ÔìĞÂµÄÍ¼£¬²¢·µ»Ø
-	for (int loop = 0; loop < m_numNode; loop++)
-	{
-		//ĞèÒªÅĞ¶ÏÊÇ·ñ´æÔÚÒÑ¾­Á¬½Ó¹ıµÄ½áµã----ÔÚÓĞÏòÍ¼ÖĞ²»´æÔÚ¸ÃÎÊÌâ
-		//createGraph(loop,vecIndexCache[loop])
-		for (int line : vecIndexCache[loop])
-		{
-			cout << loop << "---" << line << endl;
-		}
-	}
-#endif //0
+{  
 	//Ê¹ÓÃÁÚ½Ó¾ØÕó½øĞĞ¹¹½¨×îĞ¡´ú¼ÛÉú³ÉÊ÷
 	vector<vector<int>>adjTable(m_numNode);  //ÁÚ½Ó¾ØÕó
 	listInvertTable(adjTable);  //½«µ±Ç°ÁÚ½Ó±í×ª»»Îª¾ØÕóĞÎÊ½
@@ -417,7 +428,7 @@ minRoadLenDijksra(const nodeDataType &t_startElem)
 			sprintf(path[loop], "");
 	}
 	indexCache[startIndex] = 1;
-	//²éÕÒÓëÆäËû½áµãµÄ×î¶ÌÂ·¾¶£¬²¢
+	//²éÕÒÓëÆäËû½áµãµÄ×î¶ÌÂ·¾¶
 	for (int loop = 0; loop < m_numNode; loop++)
 	{
 		minLength = GRAPH_MAX_WEIGHT_LINE;
@@ -451,6 +462,7 @@ minRoadLenDijksra(const nodeDataType &t_startElem)
 		if (i!=startIndex)
 			cout << "Dist:" << distStart[i] << "\t" << path[i] << endl;
 	}
+	//ÊÍ·Å¿Õ¼ä
 	delete[]distStart; distStart = nullptr;
 	delete[]indexCache; indexCache = nullptr;
 	for (int i = 0; i < m_numNode; i++)
@@ -458,6 +470,15 @@ minRoadLenDijksra(const nodeDataType &t_startElem)
 		delete[]path[i]; path[i] = nullptr;
 	}
 	delete[]path; path = nullptr;
+}
+
+/** @Function:Õë¶ÔAOVÍøÂç£¬½øĞĞÍØÆËÅÅĞò
+    @Output£ºÊä³öÅÅĞò½á¹û
+*/
+template<typename nodeDataType, typename infoType>bool usrGraph<nodeDataType, infoType>::
+topSort_AOV()
+{
+
 }
 
 #if EN_NMSPACE_USR_DATASTRUCTURE
