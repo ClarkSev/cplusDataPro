@@ -185,16 +185,15 @@ clrLinerList() //清空链表数据，并释放结点指针
 	headNode = nullptr;  //重导向指针
 	lastNode = nullptr;
 }
-template<typename headType, typename nodeType = headType>
-void clrLinerList(HeadNode<headType, nodeType> **theadNode)
+template<typename headType, typename nodeType = headType>void usrList<headType, nodeType>::
+clrLinerList(HeadNode<headType, nodeType> **theadNode)
 {
 	if (!theadNode)
 		return;
 	Node<nodeType> *lptrNode = (*theadNode)->ptrNext;
 	while (lptrNode)
 	{
-		delListNode(&lptrNode,false);
-		lptrNode = lptrNode->ptrNext;
+		delListNode(&lptrNode,false);  //该函数会自动更新 lptrNode 结点地址
 	}
 	delete (*theadNode); *theadNode = nullptr;
 }
