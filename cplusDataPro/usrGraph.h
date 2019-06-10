@@ -41,7 +41,13 @@
 
 #define EN_MULIT_INFOTYPE               (0)       //设置邻接表结点数据的类型
 												  //0：表示常规的基本类型 1：表示结构体或是类类型的结点数据
+
+#define EN_OCCUPYIDE                    (0)       //是否在删除图结点时，使用占位符
 #define GRAPH_MAX_WEIGHT_LINE           (65535)   //最大权重值
+
+#if EN_OCCUPYIDE
+#define OCCUPIED_POSITION_CHAR         (-2)      //占位符宏
+#endif //EN_OCCUPYIDE
 
 /** 类定义------------------------------------------------------------------------*/
 #if EN_NMSPACE_USR_DATASTRUCTURE
@@ -119,7 +125,9 @@ public:
 	
 	void minCostPrim();//最小代价生成树----针对无向图
 	void minRoadLenDijksra(const nodeDataType &t_startElem);   //最短路径算法---针对有向图
-	bool topSort_AOV();  //针对AOV网络，使用拓扑排序算法检测网络中是否存在环路
+	void topSort_AOV();
+	void AOE();  //AOE网络
+	//针对AOV网络，使用拓扑排序算法检测网络中是否存在环路
 };
 
 //---------------------------------图的方法实现------------------------------------//
@@ -277,8 +285,14 @@ deleteGraphNode(const nodeDataType t_graphNode)
 		curPtr = curPtr->ptrNext;
 		++listLength;
 	}
+#if EN_OCCUPYIDE   //是否使用占位符
+	//需要添加一个占位数据，以防止后面的遍历或是计算出现索引值不匹配
+	m_vecHead[index] = OCCUPIED_POSITION_CHAR;  //占位符
+#else
 	//将数据从vecHead中删除
-	m_vecHead.erase(m_vecHead.begin()+index);
+	m_vecHead.erase(m_vecHead.begin() + index);
+#endif  //EN_OCCUPYIDE
+
 	//更新结点数据与边信息
 	m_numNode -= 1;
 	if (m_numNode < 0)
@@ -289,7 +303,7 @@ deleteGraphNode(const nodeDataType t_graphNode)
 	//释放链表空间
 	usrList<nodeDataType, infoType> l_tmpList;
 	l_tmpList.clrLinerList(&lheadPtr);
-	//需要添加一个占位数据，以防止后面的遍历或是计算出现索引值不匹配
+	
 }
 
 //深度优先数据遍历
@@ -490,13 +504,60 @@ minRoadLenDijksra(const nodeDataType &t_startElem)
 /** @Function:针对AOV网络，进行拓扑排序
     @Output：输出排序结果
 */
-template<typename nodeDataType, typename infoType>bool usrGraph<nodeDataType, infoType>::
+template<typename nodeDataType, typename infoType>void usrGraph<nodeDataType, infoType>::
 topSort_AOV()
 {
 	//1.找出任意的没有前继指针的结点，并访问
 	//2.删除该结点，与相应的边之后，再次进行 1 操作
 	//直到所有结点都有前继指针或是所有结点都访问完成
 	//为了更加简单操作，可以在结点中，加入 结点的入度信息，以供判断是否存在前继指针
+#if 0  //伪代码
+	HeadNode<nodeDataType, infoType> *curNode, *tmpNode;
+	vector<int>vecIndegree(m_numNode,0);  //用于存放各个结点的入度信息，默认为 0
+	int tmpNode = m_numNode;  //用于保持没有更改前的结点数
+	int curIndex = 0;
+	for (int i = 0; i < tmpNode; i++)
+	{
+		//选择一个没有前继指针的结点
+		findPrePtr(vecIndegree);
+		if (vecIndegree.size() == 0)   //入度为 0 的结点已经全部查找完成
+			break;
+		curNode = m_vecHead[vecIndegree[0]];
+		//访问数据
+		visitNode(curNode);
+		curIndex = vecFindElem(curNode->nodeDat);
+		vecIndegree[curIndex] = -1;  //virtualDelNode(curNode);  这个并不会操作实际的图，只是虚拟删除
+	}
+	return true;
+
+	void findPrePtr(vector<int>&vecRet)  //查找没有前继指针的结点，将其加入到vector中并返回
+	{
+		HeadNode<nodeDataType, infoType> *curHead = nullptr;
+		Node<infoType> *curPtr = nullptr;
+		int curIndex = 0;
+		for (int i = 0; i < m_numNode; i++)
+		{
+			curHead = m_vecHead[i];
+			if(vecRet[i]== -1)  //取出的数据是之前删除的数据的位置
+				continue;	                        //OCCUPIED_POSITION_CHAR--虚拟删除数据之后放置的占位符
+			curPtr = curHead->ptrNext;
+			while (curPtr)
+			{
+				curIndex = m_getInfoIndex(curPtr);
+				vecRet[curIndex]++;
+				curPtr = curPtr->ptrNext;
+			}
+		}
+	}
+
+#endif //0
+
+}
+
+template<typename nodeDataType, typename infoType>void usrGraph<nodeDataType, infoType>::
+AOE()
+{
+
 }
 
 #if EN_NMSPACE_USR_DATASTRUCTURE
