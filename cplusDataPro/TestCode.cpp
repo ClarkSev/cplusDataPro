@@ -199,7 +199,6 @@ public:
 	int Index; int Weight;
 };
 
-
 //有向图 弧尾表示
 usrGraph<int, int>usrDirect;
 //vector<int>usrVec = { 1,2,3,4,5 };
