@@ -82,6 +82,10 @@ ipch/
 *.cachefile
 *.VC.db
 
+##添加工程忽略文件
+*.vcxproj
+*.vcxproj.filters
+
 # Visual Studio profiler
 *.psess
 *.vsp
