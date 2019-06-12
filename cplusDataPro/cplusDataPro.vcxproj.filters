@@ -74,5 +74,8 @@
     <ClInclude Include="usrStack.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="usrAlgorithm.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -82,6 +82,7 @@
     <ClInclude Include="usrClassifyBT.h" />
     <ClInclude Include="usrGraph.h" />
     <ClInclude Include="usrQueue.h" />
+    <ClInclude Include="usrAlgorithm.h" />
     <ClInclude Include="usrStack.h" />
     <ClInclude Include="usrMaxStackTree.h" />
   </ItemGroup>
