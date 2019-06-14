@@ -5,6 +5,11 @@
 			  1.插入排序---------时间复杂度O(n^2)，空间复杂度O(1)，稳定排序
 			  2.折半插入排序（与1相近）
 			  3.希尔排序---------时间复杂度O(n(logn)^2)，空间复杂度O(1)，不稳定排序
+			  4.冒泡排序---------时间复杂度O(n^2)，不稳定排序
+			  5.快速排序---------平均时间复杂度O(nlogn)，空间复杂度O(n)
+							     不稳定排序（目前平均速度最快的排序算法之一）
+			  6.直接选择排序-----和冒泡排序相似
+			  7.堆排序-----------使用最大堆树，进行排序
 
 
 			  查找算法包含:
@@ -28,7 +33,7 @@ namespace nmspace_usr_datastructure
 {
 #endif //EN_NMSPACE_USR_DATASTRUCTURE
 
-	/** 排序算法定义---------------------------------------------------------*/
+	/** 排序算法定义一览表---------------------------------------------------------*/
 
 	template<typename elemType>void usrInsertSort(elemType Element[],const int szElem, \
 		int sortBegin=1, int sortEnd=0);  //插入排序
@@ -36,8 +41,18 @@ namespace nmspace_usr_datastructure
 		int sortBegin=1,int sortEnd=0);
 	//希尔排序--tspan为分组间隔
 	template<typename elemType>void usrShellSort(elemType Element[], const int szElem, const int tspan); 
-	template<typename elemType>	void usrBubSort(elemType Element[], const int szElem);  //冒泡排序
-	/** 查找算法定义---------------------------------------------------------*/
+	//冒泡排序
+	template<typename elemType>void usrBubSort(elemType Element[], const int szElem);  
+	//快排分组
+	template<typename elemType>int usrQuickSort_Partition(elemType Element[],int low,int high);
+	template<typename elemType>void usrQuickSort(elemType Element[],const int sortBegin,const int sortEnd); //快速排序
+	template<typename elemType>void usrQuickSort(elemType Element[], const int szElem);  //多态---快速排序的用户接口
+	//直接选择排序
+	template<typename elemType>void usrSelectSort(elemType Element[], const int szElem);
+	//堆排序
+	template<typename elemType>void usrHeapSort(elemType Element[], const int szElem);
+
+	/** 查找算法定义一览表---------------------------------------------------------*/
 	//二分查找，针对升序排列的数据，tDat--查找的数据
 	template<typename elemType>int usrBinSearch(const elemType Element[],const int szElem,const elemType tDat);  
 
@@ -159,13 +174,183 @@ template<typename elemType>void usrShellSort(elemType Element[], const int szEle
 /**
   @Func: 冒泡排序
   @Para: Element--待排序的内存，szElem--排序的内存大小
-  @Note: 思想-----
+  @Note: 思想-----每相邻元素比较大小，较大就进行交换，将大的数据交换到后面，
+		 经过一次排序，最后一个数据就是最大的元素；每排序一次，就可以只对前n-i个数据进行排序
+		 直到所有的数据排序完成。
   @Exp:  
 */
 template<typename elemType>void usrBubSort(elemType Element[], const int szElem)
 {
-
+	bool change = true;  //检测是否有数据交换
+	int i = 0, j = szElem;
+	elemType tmp;
+	while (j > 0&&change)
+	{
+		change = false;
+		for (i = 0; i < j-1; i++)
+		{
+			if (Element[i] > Element[i + 1])
+			{
+				tmp = Element[i + 1];
+				Element[i + 1] = Element[i];
+				Element[i] = tmp;
+				change = true;
+			}
+		}
+		j--;
+	}
 }
+
+/**
+  @Func：快速排序
+  @Para：Element--待排序的内存，szElem--排序的内存大小
+		 sortBegin--排序的起始索引（包含） sortEnd----排序的结束索引（包含）
+
+  @Note：思想-----在待排序的那个记录中任意选取一个记录Ri作为标准，调节序列中各个记录的位置，
+          使排在Ri前面的记录都小于Ri，排在Ri后面的记录都大于等于Ri，我们把这样的一个过程称作一次快速排序；
+		  第一次快排之后，确定了Ri的排列位置，同时将剩下的记录分为两个子序列。对这两个子序列分别进行快排；
+		  如此重复下去，当每个子序列的长度为1时，全部记录排序完成。
+*/
+template<typename elemType>void usrQuickSort(elemType Element[], const int sortBegin,const int sortEnd)
+{
+	int local = 0;
+	if (sortBegin < sortEnd)
+	{
+		local = usrQuickSort_Partition(Element, sortBegin, sortEnd);
+		usrQuickSort(Element, sortBegin, local - 1);//将左边的进行排序
+		usrQuickSort(Element, local+1, sortEnd);//将右边的进行排序
+	}
+}
+template<typename elemType>void usrQuickSort(elemType Element[], const int szElem)
+{
+	usrQuickSort(Element, 0, szElem - 1);
+}
+//快排的分组函数，并返回定位点
+//划重点----这个定位分组函数--思想很好
+template<typename elemType>int usrQuickSort_Partition(elemType Element[],int low,int high)
+{
+	elemType tmp = Element[low];
+	while (low<high)
+	{
+		while (low < high&&Element[high] >= tmp)
+			high--;
+		if (low < high)
+			Element[low++] = Element[high];
+		while (low < high&&Element[low] < tmp)
+			low++;
+		if (low < high)
+			Element[high--] = Element[low];
+	}
+	Element[low] = tmp;
+	return low;
+}
+/**
+  @Func：直接选择排序
+  @Para：Element--待排序的内存，szElem--排序的内存大小
+  @Note：思想-----和冒泡排序差不多，冒泡排序是将大的交换到后面，
+				而这是直接选择小的记录，并交换到前面，然后只对后面数据进行排序
+*/
+template<typename elemType>void usrSelectSort(elemType Element[], const int szElem)
+{
+	int i = 0, j = 0, minIndex = 0;
+	elemType tmp;
+	for (i = 0; i < szElem; i++)
+	{
+		minIndex = i;
+		for (j = i + 1; j < szElem; j++)
+		{
+			if (Element[minIndex] > Element[j])
+				minIndex = j;
+		}
+		//交换数据
+		if (minIndex != i)
+		{
+			tmp = Element[i];
+			Element[i] = Element[minIndex];
+			Element[minIndex] = tmp;
+		}
+	}
+}
+/**
+  @Func：堆排序
+  @Para：Element--待排序的内存，szElem--排序的内存大小
+  @Note：思想-----先将数据完全二叉树(可以是顺序结构)初始化为最大堆树
+				然后从根结点开始删除节点，节点并不是真正的删除，而是将结点数据保存在最后；
+				这样树结点全部删除时，就排序完成
+
+  @Attd：需要注意，在此算法中由于使用的是顺序存储的树结构；因为通过索引计算树结点的孩子或是双亲结点时，
+		 使用相除或是相乘计算，所以数据的 0 索引值不用，从 1 开始计算。
+				
+*/
+template<typename elemType>void usrHeapSort(elemType Element[], const int szElem)
+{
+	elemType tmp;
+	//申请空间
+	elemType *cache = new elemType[szElem+1]();
+	//将数据存入空间中,而且将cache[0]作为临时存储区，不存储Element数据
+	memcpy(cache + 1, Element, sizeof(elemType)*szElem);
+	//将数据转换为最大堆树
+	usrInitMaxHeap(cache, szElem + 1);
+	for (int i = szElem; i > 0; i--)
+	{
+		usrDelHeapNode(cache, i + 1, tmp);
+		Element[i - 1] = tmp;  //将删除的根结点放在元素最后
+	}
+	delete[]cache; cache = nullptr;
+}
+//初始化最大堆树
+//Element----内存中Element[0]作为临时缓存区，不存储Element数据
+//szElem-----包含了 0 索引的值(0....szElem)
+template<typename elemType>void usrInitMaxHeap(elemType Element[], const int szElem)
+{
+	int szData = szElem - 1;
+	for (int parent = szData / 2; parent > 0; parent--)
+	{
+		Element[0] = Element[parent];
+		int son = parent * 2;
+		while (son <= szData)
+		{
+			if (son < szData)  //选择最大孩子结点
+				if (Element[son] < Element[son + 1])
+					son++;
+			if (Element[0] > Element[son])  //
+				 break;
+			Element[son / 2] = Element[son]; //孩子结点往上移
+			son = son * 2;
+		}
+		Element[son/2] = Element[0];
+	}
+}
+//删除根节点，并将其保存在最后----边删除，边构建为完全二叉树
+//Element----内存中Element[0]作为临时缓存区，不存储Element数据
+//szElem-----包含了 0 索引的值(0...szElem)
+//ret--------删除的结点元素
+template<typename elemType>bool usrDelHeapNode(elemType Element[], const int szElem, elemType &ret)
+{
+	//申请空间
+	if (szElem == 0)return false;
+	int son = 2,parent=1,
+		szCache = szElem - 1;
+	ret = Element[1];
+	Element[0] = Element[szCache--];  //保存当前最后叶子的数据，并更新树结点
+	while (son<= szCache)
+	{
+		if(son<szCache)
+			if (Element[son] < Element[son + 1])
+				son++;
+		if (Element[0] > Element[son])
+			break;
+		Element[parent] = Element[son];
+		parent = son;
+		son = son * 2;
+	}
+	Element[parent] = Element[0];
+	return true;
+}
+
+
+
+
 
 
 

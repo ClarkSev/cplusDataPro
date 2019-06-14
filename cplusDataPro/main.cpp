@@ -24,8 +24,12 @@ int main()
 {
 	int arry[] = { 5,4,2,3,21,12,6,13,9 };
 	int szArry = sizeof(arry) / sizeof(int);
+	int ret = 0;
 	//usrInsertSort(arry, szArry,1,3);
-	usrShellSort(arry, szArry, 5);
+	usrHeapSort(arry, szArry);
+	//usrInitMaxHeap(arry,szArry);
+	//usrDelHeapNode(arry, szArry,ret);
+	//usrBubSort(arry, szArry);
 	//cout<<usrBinSearch(arry, szArry, 2)<<endl;
 	for (auto elem : arry)
 	{
