@@ -9,7 +9,7 @@
 			  5.快速排序---------平均时间复杂度O(nlogn)，空间复杂度O(n)
 							     不稳定排序（目前平均速度最快的排序算法之一）
 			  6.直接选择排序-----和冒泡排序相似
-			  7.堆排序-----------使用最大堆树，进行排序
+			  7.堆排序-----------使用最大堆树，进行排序，时间复杂度O(nlogn)
 
 
 			  查找算法包含:
@@ -34,9 +34,9 @@ namespace nmspace_usr_datastructure
 #endif //EN_NMSPACE_USR_DATASTRUCTURE
 
 	/** 排序算法定义一览表---------------------------------------------------------*/
-
+	//插入排序
 	template<typename elemType>void usrInsertSort(elemType Element[],const int szElem, \
-		int sortBegin=1, int sortEnd=0);  //插入排序
+		int sortBegin=1, int sortEnd=0);  
 	template<typename elemType>void usrBinInsertSort(elemType Element[], const int szElem, \
 		int sortBegin=1,int sortEnd=0);
 	//希尔排序--tspan为分组间隔
@@ -47,10 +47,16 @@ namespace nmspace_usr_datastructure
 	template<typename elemType>int usrQuickSort_Partition(elemType Element[],int low,int high);
 	template<typename elemType>void usrQuickSort(elemType Element[],const int sortBegin,const int sortEnd); //快速排序
 	template<typename elemType>void usrQuickSort(elemType Element[], const int szElem);  //多态---快速排序的用户接口
+
 	//直接选择排序
 	template<typename elemType>void usrSelectSort(elemType Element[], const int szElem);
 	//堆排序
 	template<typename elemType>void usrHeapSort(elemType Element[], const int szElem);
+	template<typename elemType>void usrInitMaxHeap(elemType Element[], const int szElem);
+	template<typename elemType>bool usrDelHeapNode(elemType Element[], const int szElem, elemType &ret);
+
+	//归并排序
+	template<typename elemType>void usrMergeSort(elemType Element[], const int szElem);
 
 	/** 查找算法定义一览表---------------------------------------------------------*/
 	//二分查找，针对升序排列的数据，tDat--查找的数据
@@ -348,6 +354,11 @@ template<typename elemType>bool usrDelHeapNode(elemType Element[], const int szE
 	return true;
 }
 
+
+template<typename elemType>void usrMergeSort(elemType Element[], const int szElem)
+{
+
+}
 
 
 
