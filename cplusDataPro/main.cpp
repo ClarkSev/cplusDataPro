@@ -22,11 +22,12 @@ using namespace std;
 
 int main()
 {
-	int arry[] = { 5,4,2,3,21,12,6,13,9 };
+	int arry[] = { 5,4,2,3,21,12,6,13,9,10 };
 	int szArry = sizeof(arry) / sizeof(int);
 	int ret = 0;
 	//usrInsertSort(arry, szArry,1,3);
-	usrHeapSort(arry, szArry);
+	usrMergeSort(arry, szArry);
+	//usrHeapSort(arry, szArry);
 	//usrInitMaxHeap(arry,szArry);
 	//usrDelHeapNode(arry, szArry,ret);
 	//usrBubSort(arry, szArry);

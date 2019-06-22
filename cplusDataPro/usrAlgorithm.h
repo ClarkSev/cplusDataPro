@@ -57,6 +57,10 @@ namespace nmspace_usr_datastructure
 
 	//归并排序
 	template<typename elemType>void usrMergeSort(elemType Element[], const int szElem);
+	//归并排序组内排序
+	template<typename elemType>bool usrBinMerge(elemType Element[], elemType retElem[], const int szSort, const int szElem);
+
+	//基数排序--又称桶排序
 
 	/** 查找算法定义一览表---------------------------------------------------------*/
 	//二分查找，针对升序排列的数据，tDat--查找的数据
@@ -354,15 +358,64 @@ template<typename elemType>bool usrDelHeapNode(elemType Element[], const int szE
 	return true;
 }
 
-
+/**
+  @Func：二路归并排序
+  @Para：Element--待排序的内存，szElem--排序的内存大小
+  @Note：思想-----将有n个记录的原始序列看成n个有序子序列，每个子序列的长度为1，
+    然后从第一个子序列开始，把相邻的子序列两两合并得到n/2个长度为2或是1 的子序列
+    （当长度为奇数时，最后一个就是 1 的子序列），我们将其称为一次归并排序；
+    再次重复操作，直到长度为 n 的一个子序列
+*/
 template<typename elemType>void usrMergeSort(elemType Element[], const int szElem)
 {
-
+	int cnt = 1;
+	int *elemCache = new int[szElem]();
+	bool state = false;
+	while (cnt < szElem)
+	{
+		if (!usrBinMerge(Element, elemCache, cnt, szElem)) { state = true;break; }
+		cnt <<= 1;  //cnt*=2;
+		if (!usrBinMerge(elemCache, Element, cnt, szElem)) { state = false;break; }
+		cnt <<= 1;
+	}
+	if (state)
+		memcpy_s(Element, szElem * sizeof(elemType), elemCache, szElem * sizeof(elemType));
+	delete[]elemCache; elemCache = nullptr;
 }
-
-
-
-
+//Func:将Element中的元素分为nGrp=szElem/szSort 个组，并将相邻组进行一次归并排序，然后存入reElem中
+//Element---待排数据     retElem---返回数据
+//szSort----组内元素个数 szElem----总元素数目
+template<typename elemType>bool usrBinMerge(elemType Element[],elemType retElem[], const int szSort,const int szElem)
+{
+	//int nGroup = szElem / szSort;
+	int low1 = 0,low2=0, high1 = 0,high2=0, sp = 0;
+	if (szSort > szElem)return false;
+	while (sp < szElem)
+	{
+		//更新数据
+		low1 = sp;
+		low2 = low1+szSort;
+		high2 = low2 + szSort - 1;
+		high1 = low2 - 1;
+		//sp = low;
+		if (high2 >= szElem)high2 = szElem-1;
+		if (low2 >= szElem)low2 = szElem - 1;
+		//进行交换数据
+		while (low1<=high1&&low2<=high2)
+		{
+			if (Element[low1] < Element[low2])
+				retElem[sp++] = Element[low1++];
+			else
+				retElem[sp++] = Element[low2++];
+		}
+		//将没有匹配的数据写入retElem中
+		while (low1<=high1&&sp<szElem)   //将序列1中数据存入
+			retElem[sp++] = Element[low1++];
+		while (low2 <= high2&&sp<szElem) //将序列1中数据存入
+			retElem[sp++] = Element[low2++];
+	}
+	return true;
+}
 
 
 /** 查找算法实现-------------------------------------------------------------------------------------*/
