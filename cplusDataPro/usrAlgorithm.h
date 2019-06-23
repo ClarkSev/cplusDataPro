@@ -2,15 +2,17 @@
   *@Author：  T.H.
   *@Version： V1.0
   *@Note:     排序算法适用于基本数据类型，算法包含：
-			  1.插入排序---------时间复杂度O(n^2)，空间复杂度O(1)，稳定排序
-			  2.折半插入排序（与1相近）
-			  3.希尔排序---------时间复杂度O(n(logn)^2)，空间复杂度O(1)，不稳定排序
-			  4.冒泡排序---------时间复杂度O(n^2)，不稳定排序
-			  5.快速排序---------平均时间复杂度O(nlogn)，空间复杂度O(n)
+			  1.插入排序-----------时间复杂度O(n^2)，空间复杂度O(1)，稳定排序
+			  2.折半插入排序-------时间复杂度O(nlogn)，空间复杂度O(1)，稳定
+			  3.希尔排序-----------时间复杂度O(n(logn)^2)，空间复杂度O(1)，不稳定排序
+			  4.冒泡排序-----------时间复杂度O(n^2)，不稳定排序
+			  5.快速排序-----------平均时间复杂度O(nlogn)，空间复杂度O(n)
 							     不稳定排序（目前平均速度最快的排序算法之一）
-			  6.直接选择排序-----和冒泡排序相似
-			  7.堆排序-----------使用最大堆树，进行排序，时间复杂度O(nlogn)
-
+			  6.直接选择排序-------和冒泡排序相似
+			  7.堆排序-------------使用最大堆树，进行排序，时间复杂度O(nlogn)
+			  8.二路归并排序-------时间复杂度O(nlogn)，空间O(1)，稳定排序
+			  9.基数排序（桶排序）-时间复杂度O(2mn)，空间O(dn)，稳定排序
+								   其中m为数据位数，n为数据量，d为进制（常为10进制）
 
 			  查找算法包含:
 			  1.二分查找
@@ -325,7 +327,7 @@ template<typename elemType>void usrInitMaxHeap(elemType Element[], const int szE
 					son++;
 			if (Element[0] > Element[son])  //
 				 break;
-			Element[son / 2] = Element[son]; //孩子结点往上移
+			Element[son / 2] = Element[son]; //孩子结点往上移，也就是替换的父母结点一直往下移，直到满足条件
 			son = son * 2;
 		}
 		Element[son/2] = Element[0];
@@ -342,7 +344,7 @@ template<typename elemType>bool usrDelHeapNode(elemType Element[], const int szE
 	int son = 2,parent=1,
 		szCache = szElem - 1;
 	ret = Element[1];
-	Element[0] = Element[szCache--];  //保存当前最后叶子的数据，并更新树结点
+	Element[0] = Element[szCache--];  //保存当前最后叶子的数据，并更新结点数
 	while (son<= szCache)
 	{
 		if(son<szCache)
@@ -350,7 +352,7 @@ template<typename elemType>bool usrDelHeapNode(elemType Element[], const int szE
 				son++;
 		if (Element[0] > Element[son])
 			break;
-		Element[parent] = Element[son];
+		Element[parent] = Element[son];  //将大的孩子结点往上移，填补移除的父母结点空缺
 		parent = son;
 		son = son * 2;
 	}
@@ -417,6 +419,59 @@ template<typename elemType>bool usrBinMerge(elemType Element[],elemType retElem[
 	return true;
 }
 
+/**
+	@Func：基数排序（又称桶排序）---是按照记录关键字组成的各位值主板进行排序的一中方法
+	@Para：Element--待排序的内存，szElem--排序的内存大小
+		   radix----排序对象的进制，bits--序列最大对象的位数
+	@Note：思想----将关键字的某一位组成符号分离出来，再根据分离出来的每个符号性质，将符号对应的关键字
+	分配到相应的同种，当所有记录的关键字都完成了上述操作后，再将所有的数据一次搜集在一起。再次进行下一轮排序
+
+	详细步骤：各记录的关键字是m为d进制数（不足m位的官架子在高位补0）。在进行基数排序时，设置d个桶（桶的个数与关键字
+	的进制有关），令其编号分别为0，1，...，d-1；首先将序列中各个记录按照其关键字最低位值的大小放置到相应的桶中，
+	然后按照前面相同的方法再次收集各桶中的记录并建立新的记录序列.....如此重复进行，当完成了对序列中的各个记录按其关键字
+	的最高位值进行放置和收集，即进行了m次基数排序后，所得到的记录序列就是原始序列的有序排列
+
+	该算法只针对于整数
+*/
+void usrRadixSort(int Element[],const int szElem,const int bits)
+{
+	//构建桶--桶大小为 d*n 的二维数组
+	int **pail = new int*[10];
+	int cntPail[10] = {0};  //桶中数据元素个数
+	for (int i = 0; i < szElem; i++)
+		pail[i] = new int[szElem]();   //初始化数据
+	int num = bits,exp = 1,idx = 0;
+	while (num--)  //num次搜集与放置
+	{
+		//放置数据
+		for (int k = 0; k < szElem; k++)
+		{
+			int tmp = ( Element[k]%(exp*10) - Element[k]%exp ) /exp;  //分离数据
+			pail[tmp][cntPail[tmp]] = Element[k];
+			cntPail[tmp]++;
+		}
+		//搜集数据
+		idx = 0;
+		for (int i = 0; i < 10; i++)
+		{
+			if (cntPail[i] != 0)
+			{
+				for (int j = 0; j<cntPail[i]; j++)
+				{
+					Element[idx++] = pail[i][j];
+				}
+				cntPail[i] = 0;   //清空桶中数据计数器
+			}
+		}
+		exp *= 10;
+	}
+	//释放空间
+	for(int i=0;i<szElem;i++)
+	{
+		delete[]pail[i]; pail[i] = nullptr;
+	}
+	delete[]pail; pail = nullptr;
+}
 
 /** 查找算法实现-------------------------------------------------------------------------------------*/
 
