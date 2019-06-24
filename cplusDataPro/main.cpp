@@ -26,13 +26,16 @@ int main()
 	int szArry = sizeof(arry) / sizeof(int);
 	int ret = 0;
 	//usrInsertSort(arry, szArry,1,3);
-	usrRadixSort(arry, szArry,2);
+	//usrRadixSort(arry, szArry,2);
 	//usrHeapSort(arry, szArry);
 	//usrInitMaxHeap(arry,szArry);
 	//usrDelHeapNode(arry, szArry,ret);
 	//usrBubSort(arry, szArry);
 	//cout<<usrBinSearch(arry, szArry, 2)<<endl;
-	for (auto elem : arry)
+
+
+	//for (int elem : *(int(*)[5])(arry+1))
+	for(auto elem:arry)
 	{
 		cout << elem << ",";
 	}
