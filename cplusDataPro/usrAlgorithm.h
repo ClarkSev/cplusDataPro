@@ -17,11 +17,7 @@
 			  10.外部排序----------败者树排序--和树形选择排序算法类似
 
 			  查找算法包含:
-			  1.二分查找（需要先对数据进行排序）----时间复杂度O(nlogn)
-			  2.分块查找（需要先进行分块，构建索引表，然后索引表可以进行二分法或顺序查找，
-			             通过索引表指向的数据块，块内进行顺序查找）
-			  3.动态查找---平衡二叉树
-
+			  1.二分查找
 */
 #pragma once
 
@@ -516,6 +512,8 @@ template<typename elemType>int usrBinSearch(const elemType Element[],const int s
 	}
 	return retPos;
 }
+
+
 
 #if EN_NMSPACE_USR_DATASTRUCTURE
 }
