@@ -14,8 +14,11 @@
 			  9.基数排序（桶排序）-时间复杂度O(2mn)，空间O(dn)，稳定排序
 								   其中m为数据位数，n为数据量，d为进制（常为10进制）
 
+			  10.外部排序----------败者树排序--和树形选择排序算法类似
+
 			  查找算法包含:
-			  1.二分查找
+			  1.二分查找（需要先对数据进行排序）----时间复杂度O(nlogn)
+			  2.分块查找（需要先进行分块，构建索引表）
 */
 #pragma once
 
@@ -509,6 +512,8 @@ template<typename elemType>int usrBinSearch(const elemType Element[],const int s
 	}
 	return retPos;
 }
+
+
 
 #if EN_NMSPACE_USR_DATASTRUCTURE
 }
