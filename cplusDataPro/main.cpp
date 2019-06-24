@@ -18,7 +18,7 @@ using namespace nmspace_usr_datastructure;
 using namespace std;
 
 
-#if  1
+#if  0
 
 int main()
 {
@@ -33,7 +33,6 @@ int main()
 	//usrBubSort(arry, szArry);
 	//cout<<usrBinSearch(arry, szArry, 2)<<endl;
 
-
 	//for (int elem : *(int(*)[5])(arry+1))
 	for(auto elem:arry)
 	{
@@ -46,6 +45,25 @@ int main()
 
 #endif  //1
 
+#if 1
 
+
+int main()
+{
+	usrAVLTree<int>usr;
+	usr.insertAVLNode(20);
+	usr.insertAVLNode(10);
+	usr.insertAVLNode(30);
+	usr.insertAVLNode(5);
+	usr.insertAVLNode(7);
+	usr.insertAVLNode(25);
+	usr.insertAVLNode(35);
+	usr.insertAVLNode(2);
+	usr.insertAVLNode(1);
+	system("pause");
+	return 0;
+}
+
+#endif //0
 
 

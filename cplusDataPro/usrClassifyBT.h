@@ -1,11 +1,16 @@
-/**@file:     分类二叉树类的定义文件
+/**@File:     分类二叉树类的定义文件
   *@Author：  T.H.
-  *@Version： V1.0
+  *@Version： V1.1
   *@Note:     这是一种比较特殊的二叉树，其特点：
               1）根结点的左子树小于根结点
 			  2）根结点的右子树大于根结点
 			  3）左右子树也是分类二叉树
 	其中继承了二叉树的公用成员和方法，并重载了其中的所有非递归遍历方法
+
+	2019-6-24:将usrClassifyBT 更改为虚继承 usrBinaryTree
+
+	Update: 添加AVL树--平衡二叉树(添加平衡算法的分类二叉树)
+
 */
 
 #pragma once
@@ -24,10 +29,9 @@ namespace nmspace_usr_datastructure
 {
 #endif  //EN_NMSPACE_USR_DATASTRUCTURE
 
-
-//---------------------分类二叉树类定义-------------------------//
+//-----------------------------------分类二叉树类定义-------------------------------------------//
 template<class dataType>
-class usrClassifyBT:public usrBinaryTree<dataType>
+class usrClassifyBT:virtual public usrBinaryTree<dataType>
 {
 private:
 	DblNode<dataType> *classifyTreeRoot;  //分类二叉树根结点
@@ -80,9 +84,7 @@ public:
 	void printTree()override;
 };
 
-//---------------------分类二叉树类实现-------------------------//
-//---------私有方法实现--------//
-
+//-----------------------------------分类二叉树类实现-------------------------------------------//
 //---------公有方法实现--------//
 //构造函数
 template<class dataType>usrClassifyBT<dataType>::
@@ -90,7 +92,6 @@ usrClassifyBT(const dataType &tdat)
 {
 	classifyTreeRoot = usrBinaryTree::creatBinaryTreeNode(tdat);
 }
-
 //查找数据，将*tptr_TreeNode设置为数据为tdat或是与tdat最近数据的结点
 template<class dataType>bool usrClassifyBT<dataType>::
 searchDataClassifyBT(const dataType &tdat,DblNode<dataType> **tptr_TreeNode)
@@ -108,7 +109,6 @@ searchDataClassifyBT(const dataType &tdat,DblNode<dataType> **tptr_TreeNode)
 			lptr_DblNode = lptr_DblNode->ptrNext;
 		else
 			return true;
-
 	}
 	return false;
 }
@@ -215,9 +215,7 @@ deleteNodeDat(const dataType &tdat)
 		lptr_sonparentNode->ptrNext = nullptr;
 	deleteNode(&lptr_sonNode);//删除结点
 	return true;
-
 }
-
 //--------------------------------多态------------------------------//
 template<class dataType>void usrClassifyBT<dataType>::
 printTree()  //二叉树的重载
@@ -260,6 +258,220 @@ searchDataUpToDn_LToR(const dataType &tdat,DblNode<dataType> *tptr_TreeNode, boo
 	if (!tptr_TreeNode)
 		lptr_DblNode = classifyTreeRoot;
 	return usrBinaryTree::searchDataUpToDn_LToR(tdat, lptr_DblNode, tbMode);
+}
+
+#if EN_NMSPACE_USR_DATASTRUCTURE
+}
+#endif  //EN_NMSPACE_USR_DATASTRUCTURE
+
+//-----------------------------------平衡二叉树类定义-------------------------------------------//
+
+#if EN_NMSPACE_USR_DATASTRUCTURE
+namespace nmspace_usr_datastructure
+{
+#endif  //EN_NMSPACE_USR_DATASTRUCTURE
+
+//定义平衡因子枚举类
+//enum class BALANCE_FACTOR:int{};
+#define LH_RL					(1)  //左高右低
+#define RH_LL					(-1) //左低右高
+#define R_EQ_L					(0)  //左右高低一致
+
+//AVL树节点定义
+template<typename dataType>
+class AVLNode
+{
+public:
+	int bf;  //平衡因子
+	AVLNode *Lchild, *Rchild;    //左右孩子结点
+	dataType nodeDat;  //数据域
+
+	AVLNode(const dataType &tdat) :nodeDat(tdat),bf(0), Lchild(nullptr), Rchild(nullptr) {};
+};
+template<typename dataType>
+class usrAVLTree
+{
+private:
+	AVLNode<dataType>   *avlTreeRoot;
+
+protected:
+	void avlR_Rotation(AVLNode<dataType>* (&tptr));    //对tptr为根结点作右旋处理
+	void avlL_Rotation(AVLNode<dataType> *tptr);       //对tptr为根结点作左旋处理
+	void avlR_Rotate_Balance(AVLNode<dataType> *tptr); //右旋平衡处理
+	void avlL_Rotate_Balance(AVLNode<dataType>* tptr); //左旋平衡处理
+
+public:
+	usrAVLTree() :avlTreeRoot(nullptr){};
+	bool searchDataAVL(const dataType & tdat, AVLNode<dataType>*(&tptr));
+	bool insertAVLNode(const dataType tdat);
+	int avlUpdateBF(AVLNode<dataType>* (&tPtr));
+	void avlUpdateBalance();
+};
+
+//-----------------------------------平衡二叉树类实现-------------------------------------------//
+template<typename dataType>void usrAVLTree<dataType>::avlR_Rotation(AVLNode<dataType>* (&tptr))
+{
+	//右旋，不做bf平衡因子处理
+	if (!tptr) return;
+	AVLNode<dataType> *lptr = tptr->Lchild;
+	tptr->Lchild = lptr->Rchild;
+	lptr->Rchild = tptr;
+	tptr = lptr;
+}
+template<typename dataType>void usrAVLTree<dataType>::avlL_Rotation(AVLNode<dataType>* tptr)
+{
+	//左旋，不做bf平衡因子处理
+	if (!tptr) return;
+	AVLNode<dataType>* lptr = tptr->Rchild;
+	tptr->Rchild = lptr->Lchild;
+	lptr->Lchild = tptr;
+	tptr = lptr;
+}
+//右旋平衡处理（左孩子高度较右孩子高），并更新bf平衡因子，包含了先左再右双向旋转
+//详细的 bf 变化，可以根据画图计算，或是数据结构书 P343 的图解
+template<typename dataType>void usrAVLTree<dataType>::avlR_Rotate_Balance(AVLNode<dataType>* tptr)
+{
+	if (!tptr) return;
+	if (tptr->bf <= 1 && tptr->bf >= -1) return;  //已经平衡不需要旋转
+	AVLNode<dataType> *lptr = tptr->Lchild,*tmp = nullptr;
+	switch (lptr->bf)
+	{
+	case 1:   //左孩子是平衡二叉树，此时只需要对根结点进行一次右旋即可
+		//修改平衡因子，只需要更新有重新调节指针指向的结点bf即可
+		lptr->bf = 0;
+		tptr->bf = 0;
+		avlR_Rotation(tptr);
+		break;
+	case 2:
+		//做一次右旋即可
+		lptr->bf = 0; tptr->bf = -1;
+		avlR_Rotation(tptr); break;
+	case -1:
+		//需要进行先左后右双向旋转
+		tmp = lptr->Rchild;
+		switch (tmp->bf)
+		{
+		case 1:  //做一次左旋即可
+			//更新bf
+			lptr->bf = 0; tmp->bf = 0; tptr->bf = -1;
+			avlL_Rotation(lptr);
+			avlR_Rotation(tptr);//再右旋
+			break;
+		case -1: 
+			//左旋，更新bf
+			lptr->bf = 0; tmp->bf = 0; tptr->bf = 0;
+			avlL_Rotation(lptr);
+			avlR_Rotation(tptr);//再右旋
+			break;
+		}
+		break;
+	}
+}
+//左旋平衡处理（右孩子较左孩子高）---与右旋平衡类似
+template<typename dataType>void usrAVLTree<dataType>::avlL_Rotate_Balance(AVLNode<dataType>* tptr)
+{
+	if (!tptr) return;
+	if (tptr->bf <= 1 || tptr->bf >= -1) return;  //已经平衡不需要旋转
+	AVLNode<dataType> *lptr = tptr->Rchild, *tmp = nullptr;
+	switch (lptr->bf)
+	{
+	case -1:   //右孩子是平衡二叉树，此时只需要对根结点进行一次左旋即可
+			  //修改平衡因子，只需要更新有重新调节指针指向的结点bf即可
+		lptr->bf = 0;
+		tptr->bf = 0;
+		avlL_Rotation(tptr);
+		break;
+	case -2: //做一次左旋
+		tptr->bf = 1; lptr->bf = 0;
+		avlL_Rotation(tptr); break;
+	case 1:
+		//需要进行先右后左双向旋转
+		tmp = lptr->Lchild;
+		switch (tmp->bf)
+		{
+		case 1:  //做一次右旋即可
+				 //更新bf
+			lptr->bf = -1; tmp->bf = 0; tptr->bf = 0;
+			avlR_Rotation(lptr);  
+			avlL_Rotation(tptr);//再左旋
+			break;
+		case -1:
+			//右旋，更新bf
+			lptr->bf = 0; tmp->bf = 0; tptr->bf = 1;
+			avlR_Rotation(lptr);
+			avlL_Rotation(tptr);//再左旋
+			break;
+		}
+		break;
+	}
+}
+//查找数据，将*tptr_TreeNode设置为数据为tdat或是与tdat最近数据的结点
+template<typename dataType>bool usrAVLTree<dataType>::
+searchDataAVL(const dataType &tdat, AVLNode<dataType> *(&tptr))
+{
+	AVLNode<dataType> *lPtr = avlTreeRoot;
+	while (lPtr)
+	{
+		//if (tptr)   //若不为空，暂存前一个结点地址
+		tptr = lPtr;
+		//nodeDat  tdat
+		int retcmp = memcmp(&lPtr->nodeDat, &tdat, sizeof(dataType));
+		if (retcmp > 0)
+			lPtr = lPtr->Lchild;
+		else if (retcmp < 0)
+			lPtr = lPtr->Rchild;
+		else
+			return true;
+	}
+	return false;
+}
+template<typename dataType>bool usrAVLTree<dataType>::insertAVLNode(const dataType tdat)
+{
+	if (!avlTreeRoot)
+	{
+		avlTreeRoot = new AVLNode<dataType>(tdat); return true;
+	}
+	AVLNode<dataType> *lptr = new AVLNode<dataType>(tdat),
+		*tmpPtr = nullptr;
+	if (searchDataAVL(tdat, tmpPtr)) //树中已经存在该节点
+		return false;
+	//nodeData tdat
+	int retcmp = memcmp(&tmpPtr->nodeDat, &tdat, sizeof(dataType));
+	if (retcmp>0)  //在左边插入
+		tmpPtr->Lchild = lptr;
+	else   //在右边插入
+		tmpPtr->Rchild = lptr;
+	avlUpdateBF(avlTreeRoot);  //更新 bf 
+	avlUpdateBalance();  //平衡
+	lptr = nullptr;
+	return true;
+}
+//更新 bf
+template<typename dataType>int usrAVLTree<dataType>::avlUpdateBF(AVLNode<dataType>* (&tPtr))
+{
+	//更新 平衡因子 就是求树的左右孩子高度差
+	//使用迭代实现
+	//AVLNode<dataType> *lPtr = avlTreeRoot;
+	if (!tPtr)return 0;
+	int L_length = 1, R_length = 1;
+	L_length += avlUpdateBF(tPtr->Lchild);
+	R_length += avlUpdateBF(tPtr->Rchild);
+	tPtr->bf = L_length - R_length;
+	return L_length > R_length ? L_length : R_length;
+}
+//调节平衡
+template<typename dataType>void usrAVLTree<dataType>::avlUpdateBalance()
+{
+	switch (avlTreeRoot->bf)
+	{
+	case 1:
+	case 0:
+	case -1:break;
+	case 2:  //右旋平衡
+		avlR_Rotate_Balance(avlTreeRoot); break;
+	case -2: //左旋平衡
+		avlL_Rotate_Balance(avlTreeRoot); break;
+	}
 }
 
 #if EN_NMSPACE_USR_DATASTRUCTURE
