@@ -251,7 +251,7 @@ template<typename elemType>int usrQuickSort_Partition(elemType Element[],int low
 			high--;
 		if (low < high)
 			Element[low++] = Element[high];
-		while (low < high&&Element[low] < tmp)
+		while (low < high&&Element[low] < tmp)  
 			low++;
 		if (low < high)
 			Element[high--] = Element[low];
