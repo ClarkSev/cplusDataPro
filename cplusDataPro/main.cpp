@@ -26,7 +26,7 @@ int main()
 	int szArry = sizeof(arry) / sizeof(int);
 	int ret = 0;
 	//usrInsertSort(arry, szArry,1,3);
-	usrMergeSort(arry, szArry);
+	usrRadixSort(arry, szArry,2);
 	//usrHeapSort(arry, szArry);
 	//usrInitMaxHeap(arry,szArry);
 	//usrDelHeapNode(arry, szArry,ret);
