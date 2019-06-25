@@ -22,7 +22,15 @@
 #include "usrBinaryTree.h"
 
 /** 私有宏------------------------------------------------------------------------*/
-
+#if !defined MIN
+#define MIN(x,y)      ((x)>(y)?(y):(x))
+#endif
+#if !defined MAX
+#define MAX(x,y)      ((x)>(y)?(x):(y))
+#endif
+#if !defined ABS
+#define ABS(x)      ((x)>0?(x):(-x))
+#endif
 /** 类定义------------------------------------------------------------------------*/
 #if EN_NMSPACE_USR_DATASTRUCTURE
 namespace nmspace_usr_datastructure
@@ -283,8 +291,8 @@ class AVLNode
 {
 public:
 	int bf;  //平衡因子
-	AVLNode *Lchild, *Rchild;    //左右孩子结点
 	dataType nodeDat;  //数据域
+	AVLNode *Lchild, *Rchild;    //左右孩子结点
 
 	AVLNode(const dataType &tdat) :nodeDat(tdat),bf(0), Lchild(nullptr), Rchild(nullptr) {};
 };
@@ -296,16 +304,17 @@ private:
 
 protected:
 	void avlR_Rotation(AVLNode<dataType>* (&tptr));    //对tptr为根结点作右旋处理
-	void avlL_Rotation(AVLNode<dataType> *tptr);       //对tptr为根结点作左旋处理
-	void avlR_Rotate_Balance(AVLNode<dataType> *tptr); //右旋平衡处理
-	void avlL_Rotate_Balance(AVLNode<dataType>* tptr); //左旋平衡处理
+	void avlL_Rotation(AVLNode<dataType>* (&tptr));       //对tptr为根结点作左旋处理
+	void avlR_Rotate_Balance(AVLNode<dataType>* (&tptr)); //右旋平衡处理
+	void avlL_Rotate_Balance(AVLNode<dataType>* (&tptr)); //左旋平衡处理
 
 public:
 	usrAVLTree() :avlTreeRoot(nullptr){};
 	bool searchDataAVL(const dataType & tdat, AVLNode<dataType>*(&tptr));
 	bool insertAVLNode(const dataType tdat);
 	int avlUpdateBF(AVLNode<dataType>* (&tPtr));
-	void avlUpdateBalance();
+	void avlUpdateBalance(AVLNode<dataType>* (&tPtr),bool &chg);
+	int avlUpdate(AVLNode<dataType>*(&tPtr));
 };
 
 //-----------------------------------平衡二叉树类实现-------------------------------------------//
@@ -318,7 +327,7 @@ template<typename dataType>void usrAVLTree<dataType>::avlR_Rotation(AVLNode<data
 	lptr->Rchild = tptr;
 	tptr = lptr;
 }
-template<typename dataType>void usrAVLTree<dataType>::avlL_Rotation(AVLNode<dataType>* tptr)
+template<typename dataType>void usrAVLTree<dataType>::avlL_Rotation(AVLNode<dataType>* (&tptr))
 {
 	//左旋，不做bf平衡因子处理
 	if (!tptr) return;
@@ -329,7 +338,7 @@ template<typename dataType>void usrAVLTree<dataType>::avlL_Rotation(AVLNode<data
 }
 //右旋平衡处理（左孩子高度较右孩子高），并更新bf平衡因子，包含了先左再右双向旋转
 //详细的 bf 变化，可以根据画图计算，或是数据结构书 P343 的图解
-template<typename dataType>void usrAVLTree<dataType>::avlR_Rotate_Balance(AVLNode<dataType>* tptr)
+template<typename dataType>void usrAVLTree<dataType>::avlR_Rotate_Balance(AVLNode<dataType>* (&tptr))
 {
 	if (!tptr) return;
 	if (tptr->bf <= 1 && tptr->bf >= -1) return;  //已经平衡不需要旋转
@@ -342,33 +351,33 @@ template<typename dataType>void usrAVLTree<dataType>::avlR_Rotate_Balance(AVLNod
 		tptr->bf = 0;
 		avlR_Rotation(tptr);
 		break;
-	case 2:
-		//做一次右旋即可
-		lptr->bf = 0; tptr->bf = -1;
-		avlR_Rotation(tptr); break;
+	//case 2:
+	//	//做一次右旋即可
+	//	lptr->bf = 0; tptr->bf = -1;
+	//	avlR_Rotation(tptr); break;
 	case -1:
 		//需要进行先左后右双向旋转
 		tmp = lptr->Rchild;
 		switch (tmp->bf)
 		{
+		case 0:  //这种情况是 tmp 是叶子结点
+			lptr->bf = 0; tptr->bf = 0; break;
 		case 1:  //做一次左旋即可
 			//更新bf
-			lptr->bf = 0; tmp->bf = 0; tptr->bf = -1;
-			avlL_Rotation(lptr);
-			avlR_Rotation(tptr);//再右旋
-			break;
+			lptr->bf = 0;tptr->bf = -1;	break;
 		case -1: 
 			//左旋，更新bf
-			lptr->bf = 0; tmp->bf = 0; tptr->bf = 0;
-			avlL_Rotation(lptr);
-			avlR_Rotation(tptr);//再右旋
-			break;
+			lptr->bf = 0;tptr->bf = 0;break;
 		}
+		tmp->bf = 0;
+		avlL_Rotation(lptr);
+		tptr->Lchild = lptr; //更新结点
+		avlR_Rotation(tptr);//再右旋
 		break;
 	}
 }
 //左旋平衡处理（右孩子较左孩子高）---与右旋平衡类似
-template<typename dataType>void usrAVLTree<dataType>::avlL_Rotate_Balance(AVLNode<dataType>* tptr)
+template<typename dataType>void usrAVLTree<dataType>::avlL_Rotate_Balance(AVLNode<dataType>* (&tptr))
 {
 	if (!tptr) return;
 	if (tptr->bf <= 1 || tptr->bf >= -1) return;  //已经平衡不需要旋转
@@ -381,27 +390,25 @@ template<typename dataType>void usrAVLTree<dataType>::avlL_Rotate_Balance(AVLNod
 		tptr->bf = 0;
 		avlL_Rotation(tptr);
 		break;
-	case -2: //做一次左旋
-		tptr->bf = 1; lptr->bf = 0;
-		avlL_Rotation(tptr); break;
+	//case -2: //做一次左旋
+	//	tptr->bf = 1; lptr->bf = 0;
+	//	avlL_Rotation(tptr); break;
 	case 1:
 		//需要进行先右后左双向旋转
 		tmp = lptr->Lchild;
 		switch (tmp->bf)
 		{
-		case 1:  //做一次右旋即可
-				 //更新bf
-			lptr->bf = -1; tmp->bf = 0; tptr->bf = 0;
-			avlR_Rotation(lptr);  
-			avlL_Rotation(tptr);//再左旋
-			break;
-		case -1:
-			//右旋，更新bf
-			lptr->bf = 0; tmp->bf = 0; tptr->bf = 1;
-			avlR_Rotation(lptr);
-			avlL_Rotation(tptr);//再左旋
-			break;
+		case 0:  //这种情况是 tmp 是叶子结点
+			lptr->bf = 0; tptr->bf = 0; break;
+		case 1: //做一次右旋即可更新bf
+			lptr->bf = -1; tptr->bf = 0;break;
+		case -1://右旋，更新bf
+			lptr->bf = 0; tptr->bf = 1;break;
 		}
+		tmp->bf = 0;
+		avlR_Rotation(lptr);
+		tptr->Rchild = lptr;//更新结点
+		avlL_Rotation(tptr);//再左旋
 		break;
 	}
 }
@@ -441,8 +448,9 @@ template<typename dataType>bool usrAVLTree<dataType>::insertAVLNode(const dataTy
 		tmpPtr->Lchild = lptr;
 	else   //在右边插入
 		tmpPtr->Rchild = lptr;
-	avlUpdateBF(avlTreeRoot);  //更新 bf 
-	avlUpdateBalance();  //平衡
+	//avlUpdateBF(avlTreeRoot);  //更新 bf 
+	//avlUpdateBalance(avlTreeRoot);  //平衡
+	avlUpdate(avlTreeRoot);
 	lptr = nullptr;
 	return true;
 }
@@ -453,25 +461,43 @@ template<typename dataType>int usrAVLTree<dataType>::avlUpdateBF(AVLNode<dataTyp
 	//使用迭代实现
 	//AVLNode<dataType> *lPtr = avlTreeRoot;
 	if (!tPtr)return 0;
-	int L_length = 1, R_length = 1;
+	int L_length = 0, R_length = 0;
 	L_length += avlUpdateBF(tPtr->Lchild);
 	R_length += avlUpdateBF(tPtr->Rchild);
 	tPtr->bf = L_length - R_length;
 	return L_length > R_length ? L_length : R_length;
 }
 //调节平衡
-template<typename dataType>void usrAVLTree<dataType>::avlUpdateBalance()
+template<typename dataType>void usrAVLTree<dataType>::avlUpdateBalance(AVLNode<dataType>* (&tPtr),bool &chg)
 {
-	switch (avlTreeRoot->bf)
+	switch (tPtr->bf)
 	{
 	case 1:
 	case 0:
-	case -1:break;
+	case -1: chg = false; break;
 	case 2:  //右旋平衡
-		avlR_Rotate_Balance(avlTreeRoot); break;
+		chg = true; avlR_Rotate_Balance(tPtr); break;
 	case -2: //左旋平衡
-		avlL_Rotate_Balance(avlTreeRoot); break;
+		chg = true; avlL_Rotate_Balance(tPtr); break;
 	}
+}
+//AVL树更新算法----包含 更新bf 与 调节平衡
+
+template<typename dataType>int usrAVLTree<dataType>::avlUpdate(AVLNode<dataType>* (&tPtr))
+{
+	//更新算法，使用迭代；如前面更新 bf 一样，边计算 bf 边平衡
+	bool chg = false; int tmp = 0;
+	if (!tPtr)return 0;
+	int L_length = 1, R_length = 1;
+	L_length += avlUpdate(tPtr->Lchild);
+	R_length += avlUpdate(tPtr->Rchild);
+	tPtr->bf = L_length - R_length;
+	avlUpdateBalance(tPtr,chg);  //调节平衡
+	if (chg)  //表示调节过平衡
+		tmp = MIN(L_length, R_length) + 1;
+	else
+		tmp = MAX(L_length, R_length);// ABS(tPtr->bf);
+	return tmp;
 }
 
 #if EN_NMSPACE_USR_DATASTRUCTURE
