@@ -351,10 +351,6 @@ template<typename dataType>void usrAVLTree<dataType>::avlR_Rotate_Balance(AVLNod
 		tptr->bf = 0;
 		avlR_Rotation(tptr);
 		break;
-	//case 2:
-	//	//做一次右旋即可
-	//	lptr->bf = 0; tptr->bf = -1;
-	//	avlR_Rotation(tptr); break;
 	case -1:
 		//需要进行先左后右双向旋转
 		tmp = lptr->Rchild;
@@ -390,9 +386,6 @@ template<typename dataType>void usrAVLTree<dataType>::avlL_Rotate_Balance(AVLNod
 		tptr->bf = 0;
 		avlL_Rotation(tptr);
 		break;
-	//case -2: //做一次左旋
-	//	tptr->bf = 1; lptr->bf = 0;
-	//	avlL_Rotation(tptr); break;
 	case 1:
 		//需要进行先右后左双向旋转
 		tmp = lptr->Lchild;
